@@ -1,0 +1,69 @@
+#include <esp_log.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+#include "project_conf.h"
+#include "wifi_mqtt_driver.h"
+#include "adc_sensor.h"
+#include "ArduinoJson.hpp"
+
+using namespace ArduinoJson;
+
+void activity_monitor(void *arg) {
+    /*
+     * @brief 任务统计信息
+     *
+     * 需要打开以下参数在 idf.py menuconfig 中
+     * configTASKLIST_INCLUDE_COREID
+     * CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS          // 生成运行时间统计
+     * CONFIG_FREERTOS_USE_STATS_FORMATTING_FUNCTIONS   // 使用格式化函数
+     * CONFIG_FREERTOS_USE_TRACE_FACILITY               // 使用追踪功能
+     */
+
+    // 分配足够大的缓冲区来存储任务统计信息
+    char *task_stats_buffer = static_cast<char *>(malloc(4096));
+    if (task_stats_buffer == nullptr) {
+        printf("无法分配内存来存储任务统计信息\n");
+        return;
+    }
+
+    while (true) {
+        // vTaskList(task_stats_buffer);   // 可以查看任务绑定在哪个CPU上了
+        // vTaskGetRunTimeStats(task_stats_buffer); // 可以看CPU占用率
+        // printf("任务名\t\t运行时间\t\tCPU使用率 (%%) \n");
+        // printf("%s\n", task_stats_buffer);
+
+        size_t free_internal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+        size_t free_spiram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+        size_t free_dma = heap_caps_get_free_size(MALLOC_CAP_DMA);
+        size_t free_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+
+        ESP_LOGI("MEM_CHECK", "Free Internal RAM : %d KB", free_internal / 1024);
+        ESP_LOGI("MEM_CHECK", "Free SPIRAM       : %d KB", free_spiram / 1024);
+        ESP_LOGI("MEM_CHECK", "Free DMA-capable  : %d KB", free_dma / 1024);
+        ESP_LOGI("MEM_CHECK", "Free 8Bit RAM     : %d KB\n", free_8bit / 1024);
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+extern "C" void app_main() {
+    static WifiMqttDriver wifiMqtt(WIFI_SSID, WIFI_PASSWORD, MQTT_URI, MQTT_USER, MQTT_PASS, MQTT_CLIENT_ID);
+    auto *fsrSensor = new ADCSensor(ADC_UNIT, FSR_SENSOR_ADC_CHANNEL, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12);
+    auto *waterSensor = new ADCSensor(ADC_UNIT, WATER_SENSOR_ADC_CHANNEL, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12);
+
+    wifiMqtt.connect();
+    std::string mqtt_json_string;
+    while (true) {
+        auto json = JsonDocument();
+        json["method"] = "control";
+        json["clientToken"] = MQTT_CLIENT_ID;
+        json["params"]["fsrSensor"] = fsrSensor->read_raw();
+        json["params"]["waterSensor"] = waterSensor->read_raw();
+        serializeJson(json, mqtt_json_string);
+
+        wifiMqtt.publishJson("/zxb/esp32", mqtt_json_string, 0, false);
+
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
