@@ -5,6 +5,11 @@
 #include "project_conf.h"
 #include "wifi_mqtt_driver.h"
 #include "adc_sensor.h"
+// #include "bme280_sensor.h"
+#include "ssd_display.h"
+#include "display_mode.h"
+#include "press_button.h"
+#include "rgb_lighter.h"
 #include "ArduinoJson.hpp"
 
 using namespace ArduinoJson;
@@ -46,20 +51,44 @@ void activity_monitor(void *arg) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
+// void main_thread(void *args) {
+//     // BME280Sensor bme280(IIC_BME_NUM, IIC_BME_I2C_ADDR);
+//     // SSDDisplay ssd1306(IIC_SSD1306_NUM, IIC_SSD1306_I2C_ADDR);
+//     // DisplayMode displayMode(ssd1306);
+//     // ButtonHandler button(GPIO_NUM_19);
+//     // ssd1306.init();
+// }
 
 extern "C" void app_main() {
     static WifiMqttDriver wifiMqtt(WIFI_SSID, WIFI_PASSWORD, MQTT_URI, MQTT_USER, MQTT_PASS, MQTT_CLIENT_ID);
     auto *fsrSensor = new ADCSensor(ADC_UNIT, FSR_SENSOR_ADC_CHANNEL, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12);
     auto *waterSensor = new ADCSensor(ADC_UNIT, WATER_SENSOR_ADC_CHANNEL, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12);
 
+    // BME280Sensor bme280(IIC_BME_NUM, IIC_BME_I2C_ADDR);
+    SSDDisplay ssd1306(IIC_SSD1306_NUM, IIC_SSD1306_I2C_ADDR);
+    DisplayMode displayMode(ssd1306);
+    ButtonHandler button(GPIO_NUM_19);
+    RGBLighter led(RMT_CHANNEL_0, GPIO_NUM_48);
+    ssd1306.init();
+
     wifiMqtt.connect();
     std::string mqtt_json_string;
+    int mode = 0;
     while (true) {
+        int fsr_raw = fsrSensor->read_raw(), water_raw = waterSensor->read_raw();
+        float altitude = 0;
+        if (button.isPressed()) {
+            printf("切换到模式 %d\n", mode);
+            led.blink(1, 100);
+            // displayMode.switch_mode(fsr_raw, water_raw, altitude, mode);
+            mode = (mode + 1) % 3;
+        }
+        displayMode.switch_mode(fsr_raw, water_raw, altitude, mode);
         auto json = JsonDocument();
         json["method"] = "control";
         json["clientToken"] = MQTT_CLIENT_ID;
-        json["params"]["fsrSensor"] = fsrSensor->read_raw();
-        json["params"]["waterSensor"] = waterSensor->read_raw();
+        json["params"]["fsrSensor"] = fsr_raw;
+        json["params"]["waterSensor"] = water_raw;
         serializeJson(json, mqtt_json_string);
 
         wifiMqtt.publishJson("/zxb/esp32", mqtt_json_string, 0, false);
