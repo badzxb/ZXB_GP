@@ -26,7 +26,7 @@ BME280Sensor::~BME280Sensor() {
 bool BME280Sensor::init() {
     ESP_LOGI(TAG, "Initializing BME280...");
 
-    i2c_config_t conf = {
+    i2c_config_bus_t conf = {
             .mode = I2C_MODE_MASTER,
             .sda_io_num = 20,
             .scl_io_num = 21,
@@ -64,6 +64,7 @@ bool BME280Sensor::read(float &press, float &altitude) {
         return false;
     }
     bme280_read_altitude(_bme280, SEA_LEVEL_PRESSURE, &altitude);
+    // altitude = 44330.0 * (1.0 - pow(press / SEA_LEVEL_PRESSURE, 0.1903));
 
     return true;
 }

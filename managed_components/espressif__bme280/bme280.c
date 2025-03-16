@@ -221,10 +221,10 @@ esp_err_t bme280_default_init(bme280_handle_t sensor)
         return ESP_FAIL;
     }
     // wait for chip to wake up.
-    vTaskDelay(300 / portTICK_RATE_MS);
+    vTaskDelay(300 / portTICK_PERIOD_MS);
     // if chip is still reading calibration, delay
     while (bme280_is_reading_calibration(sensor)) {
-        vTaskDelay(100 / portTICK_RATE_MS);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
     if (bme280_read_coefficients(sensor) != ESP_OK) { // read trimming parameters, see DS 4.2.2
         return ESP_FAIL;
@@ -250,7 +250,7 @@ esp_err_t bme280_take_forced_measurement(bme280_handle_t sensor)
         }
         while (data & 0x08) {
             i2c_bus_read_byte(sens->i2c_dev, BME280_REGISTER_STATUS, &data);
-            vTaskDelay(10 / portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_PERIOD_MS);
         }
     }
     return ESP_OK;
@@ -355,12 +355,10 @@ esp_err_t bme280_read_humidity(bme280_handle_t sensor, float *humidity)
 esp_err_t bme280_read_altitude(bme280_handle_t sensor, float seaLevel, float *altitude)
 {
     float pressure = 0.0;
-    float temp = 0.0;
-    if (bme280_read_pressure(sensor, &temp) != ESP_OK) {
+    if (bme280_read_pressure(sensor, &pressure) != ESP_OK) {
         return ESP_FAIL;
     }
-    float atmospheric = pressure / 100.0F;
-    *altitude = 44330.0 * (1.0 - pow(atmospheric / seaLevel, 0.1903));
+    *altitude = 44330.0 * (1.0 - pow(pressure / seaLevel, 0.1903));
     return ESP_OK;
 }
 
