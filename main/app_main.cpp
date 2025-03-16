@@ -11,6 +11,7 @@
 #include "press_button.h"
 #include "rgb_lighter.h"
 #include "ArduinoJson.hpp"
+#include "button_driver.h"
 
 using namespace ArduinoJson;
 
@@ -60,6 +61,7 @@ void activity_monitor(void *arg) {
 // }
 
 extern "C" void app_main() {
+    int mode = 0;
     static WifiMqttDriver wifiMqtt(WIFI_SSID, WIFI_PASSWORD, MQTT_URI, MQTT_USER, MQTT_PASS, MQTT_CLIENT_ID);
     auto *fsrSensor = new ADCSensor(ADC_UNIT, FSR_SENSOR_ADC_CHANNEL, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12);
     auto *waterSensor = new ADCSensor(ADC_UNIT, WATER_SENSOR_ADC_CHANNEL, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_12);
@@ -67,23 +69,29 @@ extern "C" void app_main() {
     BME280Sensor bme280(IIC_BME_NUM, IIC_BME_I2C_ADDR);
     SSDDisplay ssd1306(IIC_SSD1306_NUM, IIC_SSD1306_I2C_ADDR);
     DisplayMode displayMode(ssd1306);
-    ButtonHandler button(GPIO_NUM_19);
+    // ButtonHandler button(GPIO_NUM_19);
+    ButtonDriver button(GPIO_NUM_19);
     RGBLighter led(RMT_CHANNEL_0, GPIO_NUM_48);
     ssd1306.init();
     bme280.init();
 
     wifiMqtt.connect();
     std::string mqtt_json_string;
-    int mode = 0;
+    button.setOnPressCallback([&mode, &led]() {
+        printf("切换到模式 %d\n", mode);
+        led.blink(1, 100);
+        mode = (mode + 1) % 3;
+    });
+
     while (true) {
         float altitude, pressure;
         int fsr_raw = fsrSensor->read_raw(), water_raw = waterSensor->read_raw();
         bme280.read(pressure, altitude);
-        if (button.isPressed()) {
-            printf("切换到模式 %d\n", mode);
-            led.blink(1, 100);
-            mode = (mode + 1) % 3;
-        }
+        // if (button.isPressed()) {
+        //     printf("切换到模式 %d\n", mode);
+        //     led.blink(1, 100);
+        //     mode = (mode + 1) % 3;
+        // }
         displayMode.switch_mode(fsr_raw, water_raw, altitude, mode);
         auto json = JsonDocument();
         json["method"] = "control";

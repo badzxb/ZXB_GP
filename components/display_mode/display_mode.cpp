@@ -65,7 +65,7 @@ void DisplayMode::showWaterLevel(int water_raw) {
 void DisplayMode::showAltitude(float altitude) {
     _display.clear();
     char buf[32];
-    snprintf(buf, sizeof(buf), "Alt: %.1f m", altitude);
+    snprintf(buf, sizeof(buf), "pressure: %.1f m", altitude);
     _display.drawString(0, 0, buf, 16, 1);
     _display.refresh();
 }
