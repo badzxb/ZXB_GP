@@ -15,6 +15,7 @@ public:
 
     int read_raw() const;
 
+
 private:
     int raw_adc_i_;
 
@@ -25,6 +26,7 @@ private:
     esp_adc_cal_characteristics_t *_adc_chars;
 
     esp_timer_handle_t scale_timer_{};  // 定时器句柄
+
     static void _timer_callback_static(void * p);
     void _scale_loop();
     int readRaw() const;

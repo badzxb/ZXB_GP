@@ -35,7 +35,7 @@ void DisplayMode::showFSR(int fsr_raw) {
 
     _display.drawLine(cx, cy, px, py);
     char buf[32];
-    snprintf(buf, sizeof(buf), "FSR:%d", fsr_raw);
+    snprintf(buf, sizeof(buf), "Prs:%.1f KG", ((float)fsr_raw/ 4095.0) * 15);
     _display.drawString(0, 32, buf, 16, 1);
     _display.refresh();
 }
@@ -57,15 +57,15 @@ void DisplayMode::showWaterLevel(int water_raw) {
     }
 
     char buf[32];
-    snprintf(buf, sizeof(buf), "Water:%d", water_raw);
+    snprintf(buf, sizeof(buf), "Water:%.1f cm", (float)water_raw / 2500 * 6);
     _display.drawString(0, 0, buf, 16, 1);
     _display.refresh();
 }
 
-void DisplayMode::showAltitude(float altitude) {
+void DisplayMode::showAltitude(float press) {
     _display.clear();
     char buf[32];
-    snprintf(buf, sizeof(buf), "pressure: %.1f m", altitude);
+    snprintf(buf, sizeof(buf), "air_pressure: %.1f pa", press);
     _display.drawString(0, 0, buf, 16, 1);
     _display.refresh();
 }

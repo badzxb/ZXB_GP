@@ -104,6 +104,6 @@ extern "C" void app_main() {
 
         wifiMqtt.publishJson("/zxb/esp32", mqtt_json_string, 0, false);
 
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
