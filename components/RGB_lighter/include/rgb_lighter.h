@@ -37,6 +37,13 @@ public:
      */
     void blink(int times, int delay_ms);
 
+    /**
+    * @brief 指定阈值闪烁以警报
+    * @param num 指定阈值
+    * @param num_now 当前数值
+    */
+    void warn_num_int(int num, int num_now);
+
 private:
     rmt_channel_t _channel;
     gpio_num_t _gpio;

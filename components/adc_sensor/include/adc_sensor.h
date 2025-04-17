@@ -21,7 +21,7 @@ private:
 
     adc_unit_t _unit;
     adc1_channel_t _channel;
-    adc_atten_t _attenuation;
+    adc_atten_t _attenuation;         //衰减，用于控制ADC的输入电压测量范围
     adc_bits_width_t _width;
     esp_adc_cal_characteristics_t *_adc_chars;
 

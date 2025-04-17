@@ -30,7 +30,7 @@ ADCSensor::ADCSensor(adc_unit_t unit, adc1_channel_t channel, adc_atten_t attenu
         .name = "scale_timer"
     };
     ESP_ERROR_CHECK(esp_timer_create(&timer_args, &scale_timer_));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(scale_timer_, 100000)); // 100 ms 读取一次
+    ESP_ERROR_CHECK(esp_timer_start_periodic(scale_timer_, 10000)); // 10 ms 读取一次
 }
 
 ADCSensor::~ADCSensor() {

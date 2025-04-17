@@ -7,6 +7,8 @@
 #include "esp_log.h"
 #include <Cmath>
 
+#include "../project_conf/project_conf.h"
+
 #define I2C_MASTER_FREQ_HZ 100000
 #define SEA_LEVEL_PRESSURE 1013.25f
 #define TAG "BME280Sensor"
@@ -28,8 +30,8 @@ bool BME280Sensor::init() {
 
     i2c_config_bus_t conf = {
             .mode = I2C_MODE_MASTER,
-            .sda_io_num = 20,
-            .scl_io_num = 21,
+            .sda_io_num = IIC_BME_SDA_IO,
+            .scl_io_num = IIC_BME_SCL_IO,
             .sda_pullup_en = GPIO_PULLUP_ENABLE,
             .scl_pullup_en = GPIO_PULLUP_ENABLE,
             .master = {

@@ -4,8 +4,8 @@
 
 #define IIC_BME_NUM                  I2C_NUM_0         // IIC port number for master
 #define IIC_BME_FREQ_HZ              100000            // IIC master clock frequency
-#define IIC_BME_SDA_IO               20
-#define IIC_BME_SCL_IO               21
+#define IIC_BME_SDA_IO               21
+#define IIC_BME_SCL_IO               20
 #define IIC_BME_I2C_ADDR             0x76
 
 #define IIC_SSD1306_NUM                  I2C_NUM_1         // IIC port number for master

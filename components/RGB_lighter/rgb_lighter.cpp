@@ -73,10 +73,18 @@ void RGBLighter::setColor(uint8_t red, uint8_t green, uint8_t blue) {
 void RGBLighter::blink(int times, int delay_ms) {
     for (int i = 0; i < times; i++) {
         // 打开 LED（例如使用白光）
-        setColor(255, 255, 255);
+        setColor(255, 0, 0);
         vTaskDelay(pdMS_TO_TICKS(delay_ms));
         // 熄灭 LED
         setColor(0, 0, 0);
         vTaskDelay(pdMS_TO_TICKS(delay_ms));
     }
+}
+
+void RGBLighter::warn_num_int(int num, int num_now) {
+    if (num_now > num) {
+        blink(1,500);
+        num_now = 0;
+    }
+
 }

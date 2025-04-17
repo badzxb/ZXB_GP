@@ -11,10 +11,11 @@
 
 class DisplayMode {
 public:
-    DisplayMode(SSDDisplay &display);
+    DisplayMode(SSDDisplay &display);        //根据模式选择显示的界面
     void showFSR(int fsr_raw);
     void showWaterLevel(int water_raw);
     void showAltitude(float altitude);
+    void showDefault();
     void switch_mode(int fsr_raw, int water_raw, float altitude, int mode);
 
 private:
